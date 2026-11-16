@@ -1,0 +1,19 @@
+abstract final class AppAssets {
+  static const eye = 'assets/icons/welcome_eye.svg';
+  static const urgent = 'assets/icons/home_emergency.svg';
+  static const needs = 'assets/icons/home_needs.svg';
+  static const health = 'assets/icons/home_health.svg';
+  static const emotions = 'assets/icons/home_emotions.svg';
+  static const sentence = 'assets/icons/home_sentence.svg';
+  static const rest = 'assets/icons/home_rest.svg';
+  static const home = 'assets/icons/nav_home.svg';
+  static const navHomeInactive = 'assets/icons/nav_home_inactive.svg';
+  static const categories = 'assets/icons/nav_categories.svg';
+  static const navCategoriesActive = 'assets/icons/nav_categories_active.svg';
+  static const navSentence = 'assets/icons/nav_sentence.svg';
+  static const navSentenceActive = 'assets/icons/nav_sentence_active.svg';
+  static const more = 'assets/icons/nav_more.svg';
+  static const help = 'assets/icons/welcome_help.svg';
+  static const camera = 'assets/icons/camera.svg';
+  static const urgentTitle = 'assets/icons/urgent.svg';
+}

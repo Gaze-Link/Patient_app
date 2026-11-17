@@ -55,10 +55,8 @@ class _GazeLinkAppState extends State<GazeLinkApp>
   }
 
   bool get _prefersReducedMotion {
-    final features = WidgetsBinding
-        .instance
-        .platformDispatcher
-        .accessibilityFeatures;
+    final features =
+        WidgetsBinding.instance.platformDispatcher.accessibilityFeatures;
     return features.disableAnimations || features.accessibleNavigation;
   }
 
@@ -71,8 +69,8 @@ class _GazeLinkAppState extends State<GazeLinkApp>
       return;
     }
 
-    _paletteAnimation =
-        Tween<double>(begin: AppColors.darkBlend, end: target).animate(
+    _paletteAnimation = Tween<double>(begin: AppColors.darkBlend, end: target)
+        .animate(
           CurvedAnimation(
             parent: _themeTransition,
             curve: MotionTokens.curveEaseInOut,

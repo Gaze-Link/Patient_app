@@ -373,7 +373,11 @@ class _CalibrationTarget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final targetSize = isRecorded ? 36.0 : isCurrent ? 36.0 : 30.0;
+    final targetSize = isRecorded
+        ? 36.0
+        : isCurrent
+        ? 36.0
+        : 30.0;
     final color = isRecorded
         ? AppColors.mint
         : isCurrent

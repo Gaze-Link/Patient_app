@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/dwell/dwell_controller.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/app_preferences.dart';
+import '../../../shared/services/arabic_speech.dart';
 import '../../../shared/widgets/patient_bottom_nav.dart';
 import '../../../shared/widgets/dwell_action_card.dart';
 import '../../../shared/widgets/dwell_back_button.dart';
@@ -25,16 +25,13 @@ class CommunicationScreen extends StatefulWidget {
 }
 
 class _CommunicationScreenState extends State<CommunicationScreen> {
-  final FlutterTts _tts = FlutterTts();
+  final ArabicSpeech _speech = ArabicSpeech();
   late final DwellController _dwellController = DwellController(
     targetId: 'communication_option',
   );
   int? _focusedIndex;
   int? _selectedIndex;
   int? _dwellIndex;
-  bool _speechReady = false;
-  bool _speechChecked = false;
-  int _speechRequestId = 0;
 
   bool get _hasUrgentAssistance =>
       const {'needs', 'health', 'feelings'}.contains(widget.category);
@@ -52,8 +49,7 @@ class _CommunicationScreenState extends State<CommunicationScreen> {
     _dwellIndex = null;
     _focusedIndex = null;
     _selectedIndex = null;
-    _speechRequestId++;
-    unawaited(_tts.stop());
+    unawaited(_speech.stop());
   }
 
   String get _title => switch (widget.category) {
@@ -76,7 +72,7 @@ class _CommunicationScreenState extends State<CommunicationScreen> {
     super.initState();
     _dwellController.addListener(_handleDwellUpdate);
     AppPreferences.isResting.addListener(_handleRestModeChanged);
-    unawaited(_configureSpeech());
+    unawaited(_initializeSpeech());
   }
 
   void _handleDwellUpdate() {
@@ -88,44 +84,14 @@ class _CommunicationScreenState extends State<CommunicationScreen> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _configureSpeech() async {
-    try {
-      final languages = (await _tts.getLanguages as List<dynamic>).map(
-        (e) => e.toString(),
-      );
-      String? locale;
-      for (final language in languages) {
-        final normalized = language.replaceAll('_', '-').toLowerCase();
-        if (normalized == 'ar-eg') {
-          locale = language;
-          break;
-        }
-        if (locale == null && normalized.startsWith('ar')) locale = language;
-      }
-      if (locale != null) {
-        await _tts.setLanguage(locale);
-        await _tts.setPitch(1);
-        await _tts.setVolume(1);
-        _speechReady = true;
-      }
-    } catch (_) {
-      _speechReady = false;
-    } finally {
-      if (mounted) setState(() => _speechChecked = true);
-    }
+  Future<void> _initializeSpeech() async {
+    await _speech.initialize();
+    if (mounted) setState(() {});
   }
 
   Future<void> _speakOption(int index) async {
-    if (!_speechReady) return;
-    final id = ++_speechRequestId;
-    try {
-      await _tts.stop();
-      if (!mounted || id != _speechRequestId) return;
-      await _tts.setSpeechRate(AppPreferences.speechRate.value);
-      await _tts.speak(_options[index].label);
-    } catch (_) {
-      // This screen remains usable if the local speech engine fails.
-    }
+    if (!_speech.ready) return;
+    await _speech.speak(_options[index].label);
   }
 
   void _selectOption(int index) {
@@ -170,7 +136,7 @@ class _CommunicationScreenState extends State<CommunicationScreen> {
     _dwellController.removeListener(_handleDwellUpdate);
     _dwellController.dispose();
     AppPreferences.isResting.removeListener(_handleRestModeChanged);
-    unawaited(_tts.stop());
+    _speech.dispose();
     super.dispose();
   }
 
@@ -371,9 +337,9 @@ class _CommunicationScreenState extends State<CommunicationScreen> {
                         ? Text(
                             _isResting
                                 ? 'وضع الراحة شغال. اختار أي جملة عشان ترجع للتواصل.'
-                                : !_speechChecked
+                                : !_speech.checked
                                 ? 'جاري تجهيز الصوت العربي...'
-                                : !_speechReady
+                                : !_speech.ready
                                 ? 'الصوت العربي مش متاح على الجهاز'
                                 : 'الاختيار هيظهر هنا',
                             textAlign: TextAlign.center,
@@ -400,7 +366,7 @@ class _CommunicationScreenState extends State<CommunicationScreen> {
                                 height: 48,
                                 child: DwellActionCard(
                                   label: 'اسمع الاختيار تاني',
-                                  enabled: _speechReady,
+                                  enabled: _speech.ready,
                                   contentPadding: EdgeInsets.zero,
                                   onActivate: () =>
                                       unawaited(_speakOption(_selectedIndex!)),

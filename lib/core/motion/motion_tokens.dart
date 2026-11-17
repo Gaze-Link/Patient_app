@@ -25,4 +25,3 @@ abstract final class MotionTokens {
     return media.accessibleNavigation || media.disableAnimations;
   }
 }
-
